@@ -1,0 +1,19 @@
+"""
+配置文件 - 请复制为 config.py 并填入真实值
+"""
+
+# Circle API配置
+CIRCLE_API_KEY = "your_api_key_here"
+CIRCLE_ENTITY_SECRET = "your_entity_secret_here"
+
+# Arc链配置
+ARC_BLOCKCHAIN = "ARC-TESTNET"  # 使用测试网
+ARC_USDC_TOKEN_ID = "15dc2b5d-0994-58b0-bf8c-3a0501148ee8"
+
+# 应用配置
+FLASK_PORT = 5000
+FLASK_DEBUG = True
+SECRET_KEY = "your-secret-key-change-this"
+
+# 数据库配置
+DATABASE_PATH = "payments.db"
