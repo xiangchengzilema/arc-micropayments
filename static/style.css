@@ -1,0 +1,262 @@
+/* Arc Micropayments - Global Styles */
+
+:root {
+    --primary: #667eea;
+    --primary-dark: #5568d3;
+    --primary-light: #8da2f0;
+    --bg-dark: #1a1a2e;
+    --bg-card: #ffffff;
+    --bg-body: #f5f7fa;
+    --text-primary: #2d3748;
+    --text-secondary: #718096;
+    --border: #e2e8f0;
+    --success: #48bb78;
+    --warning: #ecc94b;
+    --danger: #f56565;
+    --radius: 12px;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+    background: var(--bg-body);
+    color: var(--text-primary);
+    min-height: 100vh;
+}
+
+/* Navbar */
+.navbar {
+    background: var(--bg-card);
+    box-shadow: var(--shadow);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--text-primary);
+}
+
+.logo { font-size: 24px; }
+
+.nav-links { display: flex; gap: 8px; }
+
+.nav-links a {
+    padding: 8px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.nav-links a:hover { background: var(--bg-body); color: var(--text-primary); }
+.nav-links a.active { background: var(--primary); color: white; }
+
+/* Container */
+.container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.stat-card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+}
+
+.stat-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+/* Page Header */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.page-header h1 { font-size: 24px; font-weight: 700; }
+
+/* Section */
+.section {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.section-header h2 { font-size: 18px; }
+
+/* Buttons */
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+
+/* Table */
+.table-wrapper { overflow-x: auto; }
+
+.payments-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.payments-table th {
+    text-align: left;
+    padding: 12px 16px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    border-bottom: 2px solid var(--border);
+}
+
+.payments-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+}
+
+.payments-table tr:hover { background: #f8fafc; }
+
+.amount { font-weight: 600; color: var(--primary); }
+.address { font-family: monospace; font-size: 13px; color: var(--text-secondary); }
+.time { font-size: 13px; color: var(--text-secondary); }
+
+/* Badges */
+.badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.badge-confirmed { background: #c6f6d5; color: #22543d; }
+.badge-pending { background: #fefcbf; color: #744210; }
+
+/* Wallet Cards */
+.wallets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+}
+
+.wallet-card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+}
+
+.wallet-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.wallet-chain {
+    font-size: 12px;
+    font-weight: 600;
+    background: #ebf4ff;
+    color: var(--primary);
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.wallet-status { font-size: 12px; font-weight: 500; }
+.wallet-status.live { color: var(--success); }
+
+.wallet-address {
+    font-family: monospace;
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    word-break: break-all;
+}
+
+.wallet-id { font-size: 12px; color: var(--text-secondary); margin-bottom: 12px; }
+.wallet-balance { margin-top: 8px; }
+
+.balance-tag {
+    display: inline-block;
+    background: #c6f6d5;
+    color: #22543d;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* Empty & Error */
+.empty-state {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-secondary);
+}
+
+.error { color: var(--danger); text-align: center; padding: 20px; }
+.loading { text-align: center; padding: 40px; color: var(--text-secondary); }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .navbar { padding: 0 16px; }
+    .nav-brand span:last-child { display: none; }
+    .container { padding: 16px; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .wallets-grid { grid-template-columns: 1fr; }
+}
