@@ -124,6 +124,49 @@ class PaymentRecord:
 
         return payments
 
+    def get_stats(self) -> Dict:
+        """获取支付统计信息"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+
+        # 总支付数
+        cursor.execute('SELECT COUNT(*) FROM payments')
+        total_count = cursor.fetchone()[0]
+
+        # 总金额
+        cursor.execute('SELECT COALESCE(SUM(amount_usdc), 0) FROM payments')
+        total_amount = cursor.fetchone()[0]
+
+        # 确认数
+        cursor.execute("SELECT COUNT(*) FROM payments WHERE status = 'confirmed'")
+        confirmed_count = cursor.fetchone()[0]
+
+        # 今日支付数
+        cursor.execute(
+            "SELECT COUNT(*) FROM payments WHERE date(created_at) = date('now')"
+        )
+        today_count = cursor.fetchone()[0]
+
+        # 今日金额
+        cursor.execute(
+            "SELECT COALESCE(SUM(amount_usdc), 0) FROM payments WHERE date(created_at) = date('now')"
+        )
+        today_amount = cursor.fetchone()[0]
+
+        # 平均支付金额
+        avg_amount = total_amount / total_count if total_count > 0 else 0
+
+        conn.close()
+
+        return {
+            'total_count': total_count,
+            'total_amount': round(total_amount, 6),
+            'confirmed_count': confirmed_count,
+            'today_count': today_count,
+            'today_amount': round(today_amount, 6),
+            'avg_amount': round(avg_amount, 6)
+        }
+
     def get_payments_by_address(self, address: str, limit: int = 100) -> List[Dict]:
         """获取地址相关的支付记录"""
         conn = sqlite3.connect(self.db_path)
