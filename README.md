@@ -1,111 +1,185 @@
-# Arc小额支付收据系统
+# Arc Micropayment Receipt System
 
-## 简介
-为AI Agent时代设计的高频小额支付解决方案，利用Arc的~$0.01手续费实现亚秒级确认的微支付。
+A high-frequency micropayment solution for the AI Agent era, built on [Arc](https://arc.network) — Circle's stablecoin-native L1 blockchain.
 
-## 解决痛点
-- **以太坊gas费太高** - 无法做几分钱的小额支付
-- **没有统一的支付记录** - 用户和开发者都难以追踪
-- **AI Agent按使用量计费困难** - 缺乏灵活的微支付基础设施
+## Problem
 
-## 为什么选择Arc
+AI agents need to make thousands of micro-transactions ($0.001–$1.00), but existing blockchains make this impractical:
 
-| Arc特点 | 项目价值 |
-|---------|---------|
-| ~$0.01手续费 | 使几分钱的支付成为可能 |
-| 亚秒级确认 | 用户体验流畅，无需等待 |
-| USDC原生 | 不需要买gas，用户友好 |
-| Paymaster | 交易费用也用USDC支付 |
+| Issue | Ethereum | Arc |
+|-------|----------|-----|
+| Transaction fee | ~$2-50 | ~$0.01 |
+| Confirmation time | 12+ seconds | <1 second |
+| Gas token | ETH (volatile) | USDC (stable) |
 
-## 落地应用场景
-1. **AI Agent按使用量计费** - 每回答一个问题 $0.01
-2. **内容微打赏** - 文章/代码/视频按喜好支付几分钱
-3. **API按次调用** - 不用包月，用多少付多少
-4. **游戏内小额购买** - 道具/皮肤几分钱
+**Arc changes the economics**: sub-second finality + ~$0.01 fees paid in USDC make micro-payments viable for the first time.
 
-## 技术架构
-- **后端**: Python Flask
-- **数据库**: SQLite (简单可靠)
-- **区块链**: Circle Developer Controlled Wallets
-- **前端**: 简单HTML + JavaScript
+## Use Cases
 
-## 项目结构
+- **AI Agent billing** — $0.01 per query, $0.05 per task
+- **Content tipping** — micro-rewards for articles, code, videos
+- **Pay-per-API-call** — no subscriptions, pay what you use
+- **In-game purchases** — $0.01 skins, items, upgrades
+
+## Architecture
+
 ```
 arc-micropayments/
-├── app.py              # Flask应用主文件
-├── requirements.txt    # Python依赖
-├── config.py          # 配置文件
-├── models.py          # 数据库模型
-├── static/            # 静态文件
-│   └── style.css
-├── templates/         # HTML模板
-│   ├── index.html
-│   └── payment.html
-└── README.md         # 本文件
+├── app.py                      # Flask application with REST API
+├── circle_wallet_service.py    # Circle SDK integration layer
+├── models.py                   # SQLite database models
+├── init_db.py                  # Database initialization
+├── config.example.py           # Configuration template
+├── requirements.txt            # Python dependencies
+├── Dockerfile                  # Docker support
+├── docker-compose.yml          # Docker Compose setup
+├── static/
+│   └── style.css               # Responsive CSS styles
+├── templates/
+│   ├── index.html              # Dashboard with stats
+│   ├── payment.html            # Payment form
+│   ├── receipt.html            # Transaction receipt
+│   └── wallets.html            # Wallet management
+├── tests/
+│   ├── __init__.py
+│   ├── test_models.py          # Database model tests
+│   ├── test_circle_service.py  # Wallet service tests
+│   └── test_api.py             # API endpoint tests
+└── .github/workflows/
+    └── test.yml                # CI/CD with GitHub Actions
 ```
 
-## 快速开始
+## Quick Start
 
-### 1. 安装依赖
+### Local Development
+
 ```bash
+# 1. Install dependencies
 pip install -r requirements.txt
-```
 
-### 2. 配置环境变量
-复制 `config.example.py` 为 `config.py` 并填入你的Circle API密钥：
-```python
-CIRCLE_API_KEY = "your_api_key_here"
-CIRCLE_ENTITY_SECRET = "your_entity_secret_here"
-```
+# 2. Configure (optional — runs in simulation mode without API keys)
+cp .env.example .env
+# Edit .env with your Circle API credentials
 
-### 3. 初始化数据库
-```bash
+# 3. Initialize database
 python init_db.py
-```
 
-### 4. 启动服务
-```bash
+# 4. Run
 python app.py
 ```
 
-访问 http://localhost:5000
+Visit http://localhost:5000
 
-## 核心功能
+### Docker
 
-### 支付流程
-1. 用户创建钱包 (Circle Developer Controlled Wallets)
-2. 用户充值USDC到钱包地址
-3. 发起小额支付请求
-4. 系统在Arc链上执行交易
-5. 记录交易信息到数据库
-6. 展示支付收据
+```bash
+docker compose up -d
+```
 
-### 收据系统
-- 交易哈希
-- 发送方/接收方地址
-- 支付金额 (USDC)
-- 时间戳
-- 交易状态
+### Testing
 
-## 项目进展
-- [x] 项目初始化
-- [x] 基础Flask应用框架
-- [ ] Circle SDK集成
-- [ ] 支付功能实现
-- [ ] 收据系统实现
-- [ ] Web界面完善
+```bash
+pip install pytest
+pytest tests/ -v
+```
 
-## 参考资源
-- [Arc官方文档](https://docs.arc.network)
-- [Circle Developer Wallets](https://developers.circle.com/wallets/dev-controlled)
-- [arc-commerce sample](https://github.com/circlefin/arc-commerce)
+## API Reference
+
+### Payments
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/payment` | Create a new payment |
+| `GET` | `/api/payment/:id` | Get payment details |
+| `GET` | `/api/payments/recent?limit=20` | List recent payments |
+| `GET` | `/api/address/:address` | Get payments by address |
+| `GET` | `/api/stats` | Payment statistics |
+
+### Wallets
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/wallet/create` | Create Arc wallet |
+| `GET` | `/api/wallet/:id/balance` | Check wallet balance |
+| `GET` | `/api/wallet/list` | List all wallets |
+
+### Example: Create Payment
+
+```bash
+curl -X POST http://localhost:5000/api/payment \
+  -H "Content-Type: application/json" \
+  -d '{
+    "sender": "0x1111111111111111111111111111111111111111",
+    "receiver": "0x2222222222222222222222222222222222222222",
+    "amount": 0.05,
+    "description": "AI Agent query fee"
+  }'
+```
+
+Response:
+```json
+{
+  "success": true,
+  "payment_id": 1,
+  "transaction_hash": "0xabc123...",
+  "status": "confirmed"
+}
+```
+
+## Circle SDK Integration
+
+This project integrates [Circle Developer Controlled Wallets](https://developers.circle.com/wallets/dev-controlled) on Arc:
+
+- **Wallet Sets** — Group wallets by application or user
+- **Wallets** — EOA accounts on ARC-TESTNET
+- **Transfers** — USDC transfers with ~$0.01 fees
+- **Simulation Mode** — Works without API keys for development
+
+### Getting Circle API Keys
+
+1. Register at [console.circle.com](https://console.circle.com)
+2. Create an API Key (Standard Key)
+3. Generate an Entity Secret
+4. Add to `.env` file
+
+## Tech Stack
+
+- **Backend**: Python 3.10+ / Flask
+- **Database**: SQLite
+- **Blockchain**: Arc Testnet (Circle L1)
+- **Payments**: USDC via Circle SDK
+- **Frontend**: Vanilla HTML/CSS/JS
+- **Testing**: pytest
+- **CI/CD**: GitHub Actions
+- **Deployment**: Docker
+
+## Roadmap
+
+- [x] Project initialization
+- [x] Flask application framework
+- [x] SQLite payment records
+- [x] Circle SDK integration
+- [x] Wallet management API
+- [x] USDC transfer (simulation mode)
+- [x] Unit tests
+- [x] Dashboard with statistics
+- [x] Docker support
+- [x] GitHub Actions CI/CD
+- [ ] Mainnet deployment
+- [ ] Nanopayments integration
+- [ ] Webhook event handling
+- [ ] Multi-currency (USDC + EURC)
 
 ## License
+
 MIT License
 
-## 作者
-Sicheng Zhang - Web3 Developer
+## Author
 
-## 致谢
-- Circle/Arc团队提供的优秀基础设施
-- arc-commerce sample项目的参考
+Sicheng Zhang — Web3 Developer
+
+## Acknowledgments
+
+- [Circle](https://circle.com) / [Arc](https://arc.network) — Infrastructure
+- [arc-commerce](https://github.com/circlefin/arc-commerce) — Reference implementation
+- [arc-nanopayments](https://github.com/circlefin/arc-nanopayments) — Nanopayment patterns
