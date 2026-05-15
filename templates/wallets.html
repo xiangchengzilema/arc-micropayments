@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallets - Arc Micropayments</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <span class="logo">⚡</span>
+            <span>Arc Micropayments</span>
+        </div>
+        <div class="nav-links">
+            <a href="/">Dashboard</a>
+            <a href="/wallets" class="active">Wallets</a>
+            <a href="/payment/new">New Payment</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>Wallets</h1>
+            <button class="btn btn-primary" onclick="createWallet()">+ Create Wallet</button>
+        </div>
+
+        <div id="wallets-list" class="wallets-grid">
+            <div class="loading">Loading wallets...</div>
+        </div>
+    </div>
+
+    <script>
+    async function loadWallets() {
+        try {
+            const resp = await fetch('/api/wallet/list');
+            const data = await resp.json();
+
+            const container = document.getElementById('wallets-list');
+
+            if (!data.wallets || data.wallets.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <p>No wallets yet. Create your first Arc wallet!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = data.wallets.map(w => `
+                <div class="wallet-card">
+                    <div class="wallet-header">
+                        <span class="wallet-chain">${w.blockchain}</span>
+                        <span class="wallet-status ${w.state.toLowerCase()}">${w.state}</span>
+                    </div>
+                    <div class="wallet-address">${w.address}</div>
+                    <div class="wallet-id">ID: ${w.id}</div>
+                    <button class="btn btn-sm" onclick="checkBalance('${w.id}')">
+                        Check Balance
+                    </button>
+                    <div id="balance-${w.id}" class="wallet-balance"></div>
+                </div>
+            `).join('');
+        } catch (e) {
+            document.getElementById('wallets-list').innerHTML =
+                '<div class="error">Failed to load wallets</div>';
+        }
+    }
+
+    async function createWallet() {
+        try {
+            const resp = await fetch('/api/wallet/create', { method: 'POST' });
+            const data = await resp.json();
+
+            if (data.success) {
+                loadWallets();
+            } else {
+                alert('Failed: ' + data.error);
+            }
+        } catch (e) {
+            alert('Error creating wallet');
+        }
+    }
+
+    async function checkBalance(walletId) {
+        try {
+            const resp = await fetch(`/api/wallet/${walletId}/balance`);
+            const data = await resp.json();
+
+            const el = document.getElementById(`balance-${walletId}`);
+            if (data.success && data.balance.balances) {
+                el.innerHTML = data.balance.balances.map(b =>
+                    `<span class="balance-tag">${b.amount || '0'} USDC</span>`
+                ).join('');
+            }
+        } catch (e) {
+            console.error('Balance check failed', e);
+        }
+    }
+
+    loadWallets();
+    </script>
+</body>
+</html>
