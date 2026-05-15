@@ -6,6 +6,9 @@ Arc小额支付收据系统 - 主应用文件
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 from models import PaymentRecord
 from circle_wallet_service import CircleWalletService
+from webhook_handler import WebhookHandler
+from nanopayments import NanopaymentBatch
+from payment_links import PaymentLinkManager
 import os
 from dotenv import load_dotenv
 
@@ -20,6 +23,21 @@ db = PaymentRecord(os.getenv('DATABASE_PATH', 'payments.db'))
 
 # 初始化Circle钱包服务
 wallet_service = CircleWalletService()
+
+# 初始化Webhook处理器
+webhook_handler = WebhookHandler(
+    db_path=os.getenv('DATABASE_PATH', 'payments.db'),
+    webhook_secret=os.getenv('CIRCLE_WEBHOOK_SECRET', '')
+)
+
+# 初始化纳米支付
+nanopayments = NanopaymentBatch(os.getenv('DATABASE_PATH', 'payments.db'))
+
+# 初始化支付链接
+payment_links = PaymentLinkManager(
+    db_path=os.getenv('DATABASE_PATH', 'payments.db'),
+    base_url=os.getenv('BASE_URL', 'http://localhost:5000')
+)
 
 
 # ==================== 页面路由 ====================
@@ -183,7 +201,140 @@ def address_payments(address):
 def api_stats():
     """API: 获取支付统计"""
     stats = db.get_stats()
-    return jsonify({'success': True, 'stats': stats})
+    np_stats = nanopayments.get_batch_stats()
+    link_stats = payment_links.get_link_stats()
+    return jsonify({
+        'success': True,
+        'stats': stats,
+        'nanopayments': np_stats,
+        'payment_links': link_stats
+    })
+
+
+# ==================== Webhook API ====================
+
+@app.route('/api/webhook/circle', methods=['POST'])
+def circle_webhook():
+    """Circle Webhook回调端点"""
+    signature = request.headers.get('Circle-Signature', '')
+    payload = request.get_data()
+
+    event = webhook_handler.handle(payload, signature)
+    return jsonify({'success': event.processed, 'event_type': event.event_type})
+
+
+@app.route('/api/webhook/events')
+def webhook_events():
+    """API: 获取Webhook事件日志"""
+    limit = request.args.get('limit', 50, type=int)
+    events = webhook_handler.get_event_log(limit)
+    return jsonify({'success': True, 'events': events})
+
+
+# ==================== Nanopayments API ====================
+
+@app.route('/api/nanopayment/batch', methods=['POST'])
+def create_nanopayment_batch():
+    """API: 创建纳米支付批次"""
+    data = request.get_json()
+    if not data or 'payments' not in data:
+        return jsonify({'success': False, 'error': 'payments array required'}), 400
+
+    try:
+        batch_id = nanopayments.create_batch(
+            payments=data['payments'],
+            reference=data.get('reference', '')
+        )
+        return jsonify({'success': True, 'batch_id': batch_id})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/nanopayment/batch/<batch_id>/execute', methods=['POST'])
+def execute_nanopayment_batch(batch_id):
+    """API: 执行纳米支付批次"""
+    try:
+        result = nanopayments.execute_batch(batch_id, wallet_service)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/nanopayment/batch/<batch_id>')
+def get_nanopayment_batch(batch_id):
+    """API: 获取批次详情"""
+    batch = nanopayments.get_batch(batch_id)
+    if batch:
+        return jsonify({'success': True, 'batch': batch})
+    return jsonify({'success': False, 'error': 'Batch not found'}), 404
+
+
+@app.route('/api/nanopayment/batches')
+def list_nanopayment_batches():
+    """API: 列出所有批次"""
+    limit = request.args.get('limit', 20, type=int)
+    batches = nanopayments.list_batches(limit)
+    return jsonify({'success': True, 'batches': batches})
+
+
+# ==================== Payment Links API ====================
+
+@app.route('/api/link/create', methods=['POST'])
+def create_payment_link():
+    """API: 创建支付链接"""
+    data = request.get_json()
+    if not data or 'receiver_address' not in data:
+        return jsonify({'success': False, 'error': 'receiver_address required'}), 400
+
+    try:
+        link = payment_links.create_link(
+            receiver_address=data['receiver_address'],
+            amount_usdc=data.get('amount_usdc'),
+            description=data.get('description', ''),
+            max_uses=data.get('max_uses', 1),
+            expires_hours=data.get('expires_hours', 72),
+            creator_address=data.get('creator_address', '')
+        )
+        return jsonify({'success': True, 'link': link})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/pay/<link_code>')
+def pay_link(link_code):
+    """支付链接页面"""
+    link = payment_links.get_link(link_code)
+    if not link:
+        return redirect(url_for('index'))
+    return render_template('pay_link.html', link=link)
+
+
+@app.route('/api/link/<link_code>/pay', methods=['POST'])
+def use_payment_link(link_code):
+    """API: 使用支付链接"""
+    data = request.get_json()
+    result = payment_links.use_link(
+        link_code=link_code,
+        sender_address=data.get('sender', ''),
+        amount=data.get('amount')
+    )
+    return jsonify(result)
+
+
+@app.route('/api/link/<link_code>/deactivate', methods=['POST'])
+def deactivate_payment_link(link_code):
+    """API: 停用支付链接"""
+    success = payment_links.deactivate_link(link_code)
+    return jsonify({'success': success})
+
+
+@app.route('/api/links')
+def list_payment_links():
+    """API: 列出支付链接"""
+    status = request.args.get('status')
+    limit = request.args.get('limit', 20, type=int)
+    links = payment_links.list_links(status, limit)
+    return jsonify({'success': True, 'links': links})
 
 
 # ==================== 启动 ====================
