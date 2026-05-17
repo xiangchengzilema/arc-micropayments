@@ -104,7 +104,7 @@ class PaymentRecord:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        cursor.execute('SELECT * FROM payments ORDER BY created_at DESC LIMIT ?', (limit,))
+        cursor.execute('SELECT * FROM payments ORDER BY created_at DESC, id DESC LIMIT ?', (limit,))
         rows = cursor.fetchall()
         conn.close()
 
@@ -175,7 +175,7 @@ class PaymentRecord:
         cursor.execute('''
             SELECT * FROM payments
             WHERE sender_address = ? OR receiver_address = ?
-            ORDER BY created_at DESC LIMIT ?
+            ORDER BY created_at DESC, id DESC LIMIT ?
         ''', (address, address, limit))
         rows = cursor.fetchall()
         conn.close()

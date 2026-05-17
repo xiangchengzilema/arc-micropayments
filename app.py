@@ -111,7 +111,7 @@ def api_list_wallets():
 @app.route('/api/payment', methods=['POST'])
 def create_payment():
     """API: 创建USDC支付"""
-    data = request.get_json()
+    data = request.get_json(silent=True)
 
     if not data:
         return jsonify({'success': False, 'error': 'No data provided'}), 400
