@@ -31,3 +31,4 @@ config.py
 # OS
 .DS_Store
 Thumbs.db
+commit_state.json
