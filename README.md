@@ -27,6 +27,9 @@ AI agents need to make thousands of micro-transactions ($0.001–$1.00), but exi
 arc-micropayments/
 ├── app.py                      # Flask application with REST API
 ├── circle_wallet_service.py    # Circle SDK integration layer
+├── nanopayments.py             # High-frequency batched micro-fills (Circle Nanopayments)
+├── payment_links.py            # Shareable USDC payment links
+├── webhook_handler.py          # Inbound webhook signature verification + event dispatch
 ├── models.py                   # SQLite database models
 ├── init_db.py                  # Database initialization
 ├── config.example.py           # Configuration template
