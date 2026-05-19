@@ -168,9 +168,9 @@ This project integrates [Circle Developer Controlled Wallets](https://developers
 - [x] Dashboard with statistics
 - [x] Docker support
 - [x] GitHub Actions CI/CD
+- [x] Nanopayments integration
+- [x] Webhook event handling
 - [ ] Mainnet deployment
-- [ ] Nanopayments integration
-- [ ] Webhook event handling
 - [ ] Multi-currency (USDC + EURC)
 
 ## License
