@@ -219,7 +219,11 @@ def circle_webhook():
     signature = request.headers.get('Circle-Signature', '')
     payload = request.get_data()
 
-    event = webhook_handler.handle(payload, signature)
+    try:
+        event = webhook_handler.handle(payload, signature)
+    except Exception as e:
+        # Always return JSON to Circle's webhook delivery system, never HTML.
+        return jsonify({'success': False, 'error': str(e)}), 500
     return jsonify({'success': event.processed, 'event_type': event.event_type})
 
 
