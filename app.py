@@ -316,7 +316,7 @@ def pay_link(link_code):
 @app.route('/api/link/<link_code>/pay', methods=['POST'])
 def use_payment_link(link_code):
     """API: 使用支付链接"""
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     result = payment_links.use_link(
         link_code=link_code,
         sender_address=data.get('sender', ''),
